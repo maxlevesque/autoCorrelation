@@ -10,7 +10,7 @@ The purpose of this program is to compute the autocorrelation function (initiall
 evolving in time.
 
 The ACF we calculate is defined as
-ACF(dt)=<v(i,t).v(i,t+dt)>_i,t
+ACF(dt)= Average of (v(i,t).v(i,t+dt)) over all i and t,
 
 where particle i has velocity v (or force, or any vector you want) at time t. The ensemble average goes for all equivalent sites and origin of times.
 The dot indicates dot (scalar) product.
