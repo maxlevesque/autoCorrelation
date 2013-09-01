@@ -75,7 +75,7 @@ program autoCorrelation
     end do
     close(11)
 
-    print*,"-- Everything went smoothly -- ;) send bug reports to maximilien.levesque@gmail.com"
+    print*,"-- Everything seems OK -- ;)"
 
     contains
 
