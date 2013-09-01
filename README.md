@@ -30,10 +30,12 @@ UPMC Univ Paris 06, CNRS, ESPCI, UMR 7195, PECSA, F-75005 Paris, France
 ### Download it
 
 The best and easiest way is to use git:
+```
     git clone https://github.com/maxlevesque/autoCorrelation  
+```
 will create a folder called autoCorrelation and download the latest version of the sources automatically.
 
-You may also go to `https://github.com/maxlevesque/autoCorrelation/archive/master.zip` from your web brower.
+You may also go to https://github.com/maxlevesque/autoCorrelation/archive/master.zip from your web brower.
 
 Or use `get`, `wget`, ... or whatever seems good to you. I repeat: the best and easiest way to download and stay up-to-date is to use `git`.
 
