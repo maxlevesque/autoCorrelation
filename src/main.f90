@@ -51,7 +51,7 @@ program autoCorrelation
             ri = r(i,:,:)
             acf_dt_i_t = 0.d0
             do t=1,nt
-                if(t+dt>=nbTimeStepsInTraj) then
+                if(t+dt>nbTimeStepsInTraj) then
                     print*, "pb in t+dt",dt,t,dt+t
                     stop
                 end if
