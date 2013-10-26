@@ -15,15 +15,18 @@ ACF(dt)= Average of (v(i,t).v(i,t+dt)) over all i and t,
 where particle i has velocity v (or force, or any vector you want) at time t. The ensemble average goes for all equivalent sites and origin of times.
 The dot indicates dot (scalar) product.
 
-## Author
+## Main author
 
 Written by Maximilien Levesque, while in postdoc in the group of Mathieu Salanne at  
 UPMC Univ Paris 06, CNRS, ESPCI, UMR 7195, PECSA, F-75005 Paris, France
 
+Written for a better workflow in the MEM group.
+
 ## Thanks
 
-* Marie Jardat, UPMC, PECSA, Paris, France, for discussions, extensive testing and bug reports of the beta (unshared) versions.  
-* Xudong Zhao, UPMC, PECSA, Paris, France, for providing test cases and for discussions.
+* Marie Jardat, UPMC, PECSA, Paris, France, for discussions, extensive testing and bug reports of the beta (unshared) versions. Sept. 2013.
+* Xudong Zhao, UPMC, PECSA, Paris, France, for providing test cases and for discussions. Sept. 2013
+* Vincent Dahirel, UPMC, PECSA, Paris, France, for rewritting part of the main algorithm in a more fast and readable way, Oct. 2013.
 
 ## How to make it work
 
