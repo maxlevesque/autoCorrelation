@@ -44,8 +44,8 @@ program autoCorrelation
     allocate( acf(0:nbTimeStepsInTraj-1) )
     acf = 0.d0
     call cpu_time(time0)
-    do dt=0,nbTimeStepsInTraj-1
-        nt = nbTimeStepsInTraj-dt-1
+    do dt = 0, nbTimeStepsInTraj-1
+        nt = nbTimeStepsInTraj-dt
         acf_dt_i = 0.d0
         do i=1,nAt
             ri = r(i,:,:)
