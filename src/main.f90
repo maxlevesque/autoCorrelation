@@ -44,28 +44,18 @@ program autoCorrelation
     allocate( acf(0:nbTimeStepsInTraj-1) )
     acf = 0.d0
     call cpu_time(time0)
-    do dt = 0, nbTimeStepsInTraj-1
-        nt = nbTimeStepsInTraj-dt
-        acf_dt_i = 0.d0
-        do i=1,nAt
-            ri = r(i,:,:)
-            acf_dt_i_t = 0.d0
-            do t=1,nt
-                if(t+dt>nbTimeStepsInTraj) then
-                    print*, "pb in t+dt",dt,t,dt+t
-                    stop
-                end if
-                acf_dt_i_t = acf_dt_i_t + dot_product(ri(t,:),ri(t+dt,:))
-            end do
-            acf_dt_i = acf_dt_i + acf_dt_i_t/dble(nt)
+
+    do i= 1, Nat
+        ri = r(i,:,:)
+        do dt = 0, nbTimeStepsInTraj-1
+            nt = nbTimeStepsInTraj-dt
+            acf(dt)=acf(dt)+(sum(ri(1:nt,1)*ri(1+dt:nt+dt,1)+ri(1:nt,2)*ri(1+dt:nt+dt,2)+ri(1:nt,3)*ri(1+dt:nt+dt,3)))/dble(nt)
         end do
-        acf(dt) = acf_dt_i/dble(nAt)
         call cpu_time(time1)
-        if(mod(dt,1000)==0) then
-            print*,'Estimated remaining time = ',nint((time1-time0)*(-1.d0+dble(nbTimeStepsInTraj)/dble(dt+1))/60.d0),' min'
-        end if
+        if(mod(i,100)==1) print*,'Estimated remaining time = ',nint(dble(Nat-i)*(time1-time0)/dble(i)/60.d0),' min'
     end do
-    
+    acf = acf/dble(Nat)
+
     deallocate(r,ri)
 
     ! acf(t) will be written in file unit 11
