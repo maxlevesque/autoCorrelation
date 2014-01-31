@@ -4,10 +4,10 @@
 
 program autoCorrelation
 
-    implicit none
+    IMPLICIT NONE
+    
     character(len("acf.out")) :: outputFile = "acf.out"
-    integer :: Nat
-    integer :: i, nbTimeStepsInTraj, iostat, dt, t, nt, d
+    integer :: Nat,i,nbTimeStepsInTraj,iostat,dt,t,nt,d
     integer, parameter :: x=1, y=2, z=3
     double precision, dimension(:,:,:), allocatable :: r ! position of site i at timestep t
     double precision, dimension(:,:), allocatable :: ri
@@ -24,27 +24,27 @@ program autoCorrelation
     ! deduce the number of timesteps in the trajectory from the number of lines in the trajectory file
     nbTimeStepsInTraj = NbOfLinesInTraj(trajectoryFileName)/Nat
 
-    print*,'You have' ,nbTimeStepsInTraj,' time steps in your trajectory file ',trim(adjustl(trajectoryFileName))
-    print*,'Please be patient. Everything seems fine... Multiorigin effect! ;)'
+    print*,'I found',nbTimeStepsInTraj,' timesteps in your trajectory called ',trim(adjustl(trajectoryFileName))
+    print*,'Please be patient... Everything looks fine...'
 
     ! read vector of all sites i at all timesteps t
-    allocate( r(Nat,nbTimeStepsInTraj,x:z) )
-    call opentraj
-    do t = 1, nbTimeStepsInTraj
-        if( mod(t,1000)==1 ) print*,"READING timestep ",t," over ",nbTimeStepsInTraj
-        do i = 1, Nat
-            read(10,*) r(i,t,x), r(i,t,y), r(i,t,z)
-        end do
-    end do
-    call closetraj
+    ALLOCATE( r(Nat,nbTimeStepsInTraj,x:z), SOURCE=0.d0 )
+    CALL opentraj
+    DO t=1,nbTimeStepsInTraj
+        IF( mod(t,1000)==1 .AND. t/=1) PRINT*,"I've read ",t-1," timesteps among ",nbTimeStepsInTraj
+        DO i=1,Nat
+            READ(10,*) r(i,t,x), r(i,t,y), r(i,t,z)
+        END DO
+    END DO
+    CALL closetraj
+    PRINT*,"I've read all the trajectories :). Be patient..."
 
 !~     ! compute autocorrelation function acf(dt)= <v_i(t).v_i(t+dt)>_{i,t}   where . is the scalar product
-    allocate( ri(nbTimeStepsInTraj,x:z) )
-    ri = 0.d0
-    allocate( acf(0:nbTimeStepsInTraj-1) )
-    acf = 0.d0
-    call cpu_time(time0)
+    ALLOCATE( ri(nbTimeStepsInTraj,x:z), SOURCE=0.d0 )
+    ALLOCATE( acf(0:nbTimeStepsInTraj-1), SOURCE=0.d0 )
+    CALL CPU_TIME(time0)
 
+    PRINT*,"I'm now brutally computing the velocity autocorrelation function, which is its auto-cross-correlation."
     do i= 1, Nat
         ri = r(i,:,:)
         do dt = 0, nbTimeStepsInTraj-1
@@ -52,12 +52,13 @@ program autoCorrelation
             acf(dt)=acf(dt)+(sum(ri(1:nt,1)*ri(1+dt:nt+dt,1)+ri(1:nt,2)*ri(1+dt:nt+dt,2)+ri(1:nt,3)*ri(1+dt:nt+dt,3)))/dble(nt)
         end do
         call cpu_time(time1)
-        if(mod(i,100)==1) print*,'Estimated remaining time = ',nint(dble(Nat-i)*(time1-time0)/dble(i)/60.d0),' min'
+        if(mod(i,100)==1) print*,'Remaining time ≈ ',nint(dble(Nat-i)*(time1-time0)/dble(i)/60.d0),' min'
     end do
     acf = acf/dble(Nat)
 
     deallocate(r,ri)
 
+    
     ! acf(t) will be written in file unit 11
     open(11,file=outputfile)
     do dt = 0, nbTimeStepsInTraj-1
@@ -65,9 +66,10 @@ program autoCorrelation
     end do
     close(11)
 
-    print*,"-- Everything seems OK -- ;)"
+    PRINT*,"-- Finished. GGHF ;) --"
 
-    contains
+
+    CONTAINS
 
     subroutine opentraj
         call inquireFileExistence(trajectoryFileName)
@@ -125,25 +127,23 @@ program autoCorrelation
 
     
     
-    subroutine readArguments(Nat,trajectoryFileName)
-        integer, intent(out) :: Nat
-        character (len=*), intent(out) :: trajectoryFileName
-        call get_command_argument(1,arg,status=i)
-        if( i < 0 ) then
-            stop "STOP. The length of the argument is too big for me :( "
-        else if ( i > 0 ) then
-            stop "Argument retrieval failed. You should execute the program with the number of atoms as argument, e.g. in ./acf 10 "
-        end if
-        read(arg,*) Nat
-    
-        call get_command_argument(2,arg,status=i)
-        if( i < 0 ) then
-            stop "STOP. The length of the argument is too big for me :( "
-        else if ( i > 0 ) then
-            stop "Argument retrieval failed. You should execute the program with the number of atoms as argument, e.g. in ./acf 10 "
-        end if
-        trajectoryFileName = trim(adjustl(arg))
-    
-    end subroutine
+    SUBROUTINE readArguments(Nat,trajectoryFileName)
+        INTEGER, INTENT(OUT) :: Nat
+        CHARACTER(LEN=*),INTENT(OUT) :: trajectoryFileName
+        CALL GET_COMMAND_ARGUMENT(1,arg,STATUS=i)
+        IF (i<0) THEN
+            STOP "STOP. The length of the argument is too big for me :( "
+        ELSE IF (i>0) THEN
+            STOP "Argument retrieval failed. You should execute the program with the number of atoms as argument, e.g. in ./acf 10 "
+        END IF
+        READ(arg,*) Nat
+        CALL GET_COMMAND_ARGUMENT(2,arg,STATUS=i)
+        IF (i<0) THEN
+            STOP "STOP. The length of the argument is too big for me :( "
+        ELSE IF (i>0) THEN
+            STOP "Argument retrieval failed. You should execute the program with the number of atoms as argument, e.g. in ./acf 10 "
+        END IF
+        trajectoryFileName = TRIM(ADJUSTL(arg))
+    END SUBROUTINE readArguments
   
-end program
+END PROGRAM
