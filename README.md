@@ -88,7 +88,7 @@ At the end, you *must* have 3 columns and `Nat x Nstep` rows.
 
 That's all you need.
 
-Note that if you have one-dimensional (two-dimensional) vector at each time step, you'll have to fill the last 2 (1) column with zero.
+Note that if you have one-dimensional (two-dimensional) vector at each time step, you'll have to fill the last 2 (1) columns with zero.
 
 ## Execution
 
