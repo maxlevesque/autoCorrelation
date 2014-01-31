@@ -2,30 +2,27 @@
 ! It is written by Maximilien Levesque while in postdoc in the group of Mathieu Salanne
 ! at UPMC Univ Paris 06, CNRS, ESPCI, UMR 7195, PECSA, F-75005 Paris, France.
 
-program autoCorrelation
+PROGRAM autoCorrelation
 
     IMPLICIT NONE
     
-    character(len("acf.out")) :: outputFile = "acf.out"
-    integer :: Nat,i,nbTimeStepsInTraj,iostat,dt,t,nt,d
-    integer, parameter :: x=1, y=2, z=3
-    double precision, dimension(:,:,:), allocatable :: r ! position of site i at timestep t
-    double precision, dimension(:,:), allocatable :: ri
-    double precision :: lx, ly, lz, diffx, diffy, diffz, rc, dx2, dy2, dz2, r0, r1, time1, time0
-    double precision, dimension(:), allocatable :: acf
-    character(len=300) :: arg, trajectoryFileName
-    double precision, dimension(x:z) :: l
-    logical :: doagain
-    double precision :: acf_dt_i, acf_dt_i_t
+    CHARACTER(LEN("acf.out")) :: outputFile = "acf.out"
+    INTEGER :: Nat,i,nbTimeStepsInTraj,iostat,dt,t,nt
+    INTEGER, PARAMETER :: x=1, y=2, z=3
+    DOUBLE PRECISION, DIMENSION(:,:,:), ALLOCATABLE :: r ! position of site i at timestep t
+    DOUBLE PRECISION, DIMENSION(:,:), ALLOCATABLE :: ri
+    DOUBLE PRECISION :: time1, time0, remainingTimeInSec
+    DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: acf
+    CHARACTER(LEN=300) :: arg, trajectoryFileName
 
     ! read all arguments that MUST be given at execution
     call readArguments(Nat,trajectoryFileName)
 
     ! deduce the number of timesteps in the trajectory from the number of lines in the trajectory file
-    nbTimeStepsInTraj = NbOfLinesInTraj(trajectoryFileName)/Nat
+    nbTimeStepsInTraj = NbOfLinesInTraj()/Nat
 
-    print*,'I found',nbTimeStepsInTraj,' timesteps in your trajectory called ',trim(adjustl(trajectoryFileName))
-    print*,'Please be patient... Everything looks fine...'
+    PRINT*,'I found',nbTimeStepsInTraj,' timesteps in your trajectory called ',trim(adjustl(trajectoryFileName))
+    PRINT*,'Please be patient... Everything looks fine...'
 
     ! read vector of all sites i at all timesteps t
     ALLOCATE( r(Nat,nbTimeStepsInTraj,x:z), SOURCE=0.d0 )
@@ -45,70 +42,82 @@ program autoCorrelation
     CALL CPU_TIME(time0)
 
     PRINT*,"I'm now brutally computing the velocity autocorrelation function, which is its auto-cross-correlation."
-    do i= 1, Nat
+    DO i= 1, Nat
         ri = r(i,:,:)
-        do dt = 0, nbTimeStepsInTraj-1
+        DO dt = 0, nbTimeStepsInTraj-1
             nt = nbTimeStepsInTraj-dt
-            acf(dt)=acf(dt)+(sum(ri(1:nt,1)*ri(1+dt:nt+dt,1)+ri(1:nt,2)*ri(1+dt:nt+dt,2)+ri(1:nt,3)*ri(1+dt:nt+dt,3)))/dble(nt)
-        end do
-        call cpu_time(time1)
-        if(mod(i,100)==1) print*,'Remaining time ≈ ',nint(dble(Nat-i)*(time1-time0)/dble(i)/60.d0),' min'
-    end do
-    acf = acf/dble(Nat)
+            acf(dt)=acf(dt)+(SUM(ri(1:nt,1)*ri(1+dt:nt+dt,1)+ri(1:nt,2)*ri(1+dt:nt+dt,2)+ri(1:nt,3)*ri(1+dt:nt+dt,3)))/DBLE(nt)
+        END DO
+        
+        CALL CPU_TIME(time1)
+        IF(MODULO(i,MAX(INT(Nat*0.1),1))==0) THEN
+            remainingTimeInSec = DBLE(Nat-i)*(time1-time0)/DBLE(i)
+            IF (remainingTimeInSec>60.d0) THEN
+                PRINT*,'Estimated remaining time ≈ ',NINT(remainingTimeInSec/60.d0),' min'
+            ELSE
+                PRINT*,'Estimated remaining time ≈ ',NINT(remainingTimeInSec),' s'
+            END IF
+        END IF
+    END DO
+    acf = acf/DBLE(Nat)
 
-    deallocate(r,ri)
+    DEALLOCATE(r,ri)
 
     
     ! acf(t) will be written in file unit 11
-    open(11,file=outputfile)
-    do dt = 0, nbTimeStepsInTraj-1
-        write(11,*) dt, acf(dt)
-    end do
-    close(11)
+    OPEN(11,FILE=outputfile)
+    DO dt = 0, nbTimeStepsInTraj-1
+        WRITE(11,*) dt, acf(dt)
+    END DO
+    CLOSE(11)
 
-    PRINT*,"-- Finished. GGHF ;) --"
+    CALL CPU_TIME(time1)
+    IF ((time1-time0)>120.d0) THEN
+        PRINT*,"-- Finished in ",NINT((time1-time0)/60.d0)," min. GGHF ;) --"
+    ELSE
+        PRINT*,"-- Finished in ",NINT(time1-time0)," s. GGHF ;) --"
+    END IF
 
 
     CONTAINS
 
-    subroutine opentraj
-        call inquireFileExistence(trajectoryFileName)
+    SUBROUTINE opentraj
+        CALL inquireFileExistence(trajectoryFileName)
         ! read positions
-        open(10, file=trajectoryFileName,status='old',iostat=iostat)
-        if (iostat /= 0) then
-            write (*,*) 'File open failed for',trajectoryFileName
-            write (*,*) 'Error code is ', iostat
-            stop
-        end if
-    end subroutine
+        OPEN(10, FILE=trajectoryFileName,STATUS='old',IOSTAT=iostat)
+        IF (iostat /= 0) THEN
+            WRITE(*,*) 'File open failed for',trajectoryFileName
+            WRITE(*,*) 'Error code is ', iostat
+            STOP
+        END IF
+    END SUBROUTINE opentraj
     
-    subroutine closetraj
-        close(10)
-    end subroutine
+    SUBROUTINE closetraj
+        CLOSE(10)
+    END SUBROUTINE closetraj
 
-    subroutine inquireFileExistence(fileName)
-        character(len=*), intent(in) :: fileName
-        integer, parameter :: stderr = 0
-        logical :: exist
-        inquire(file=fileName, exist=exist)
-        if( .not. exist) then
-            write(stderr,*) "YOUR ERROR (not mine ;): The file ",fileName," does not exist. It should."
-            stop
-        end if
-    end subroutine
+    SUBROUTINE inquireFileExistence(fileName)
+        CHARACTER(LEN=*), INTENT(IN) :: fileName
+        INTEGER, PARAMETER :: stderr = 0
+        LOGICAL :: exist
+        INQUIRE(FILE=fileName, EXIST=exist)
+        IF( .NOT. exist) THEN
+            WRITE(stderr,*) "YOUR ERROR (not mine ;): The file ",fileName," does not exist. It should."
+            STOP
+        END IF
+    END SUBROUTINE inquireFileExistence
 
-    function NbOfLinesInTraj(filename)
-        character(len=*), intent(in) :: filename
-        integer :: NbOfLinesInTraj
-        call opentraj
+    FUNCTION NbOfLinesInTraj()
+        INTEGER :: NbOfLinesInTraj
+        CALL opentraj
         ! computes the number of lines in traj.in and deduces the number of timesteps
         NbOfLinesInTraj = -1
-        do while (iostat == 0)
-            read(10,*,iostat=iostat)
+        DO WHILE (iostat == 0)
+            READ(10,*,IOSTAT=iostat)
             NbOfLinesInTraj = NbOfLinesInTraj + 1
-        end do
-        call closetraj
-    end function
+        END DO
+        CALL closetraj
+    END FUNCTION NbOfLinesInTraj
     
     
 !~     function NbOfLinesInTraj(filename)
