@@ -46,7 +46,10 @@ PROGRAM autoCorrelation
         ri = r(i,:,:)
         DO dt = 0, nbTimeStepsInTraj-1
             nt = nbTimeStepsInTraj-dt
-            acf(dt)=acf(dt)+(SUM(ri(1:nt,1)*ri(1+dt:nt+dt,1)+ri(1:nt,2)*ri(1+dt:nt+dt,2)+ri(1:nt,3)*ri(1+dt:nt+dt,3)))/DBLE(nt)
+            acf(dt)=acf(dt)+&
+                        (SUM(    ri(1:nt,1)*ri(1+dt:nt+dt,1)  &
+                                +ri(1:nt,2)*ri(1+dt:nt+dt,2)  &
+                                +ri(1:nt,3)*ri(1+dt:nt+dt,3))  )/DBLE(nt)
         END DO
         
         CALL CPU_TIME(time1)
