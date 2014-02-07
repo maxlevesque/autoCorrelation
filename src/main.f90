@@ -43,7 +43,7 @@ PROGRAM autoCorrelation
     IF (TRIM(ADJUSTL(algo))=="bruteforce") THEN
         CALL bruteforce(r,acf)
     ELSE IF (TRIM(ADJUSTL(algo))=="fourierspace") THEN
-!~         CALL fourierspace(r,acf)
+        CALL fourierspace(r,acf)
     ELSE
         STOP "I do not understand the algorithm you ask for. I only recognize bruteforce and fourierspace. STOP"
     END IF
@@ -189,6 +189,7 @@ PROGRAM autoCorrelation
             INTEGER :: i,dt,nt,Nat,nbTimeStepsInTraj
             INTEGER, PARAMETER :: x=1, y=2, z=3
             DOUBLE PRECISION :: time0, time1, remainingTimeInSec
+            PRINT*,"I'll use the brute force algorithm to compute the autocrosscorrelation"
             CALL CPU_TIME(time0)
             Nat = SIZE(r,1)   !r(Nat,nbTimeStepsInTraj,x:z)
             nbTimeStepsInTraj = SIZE(r,2)
@@ -216,5 +217,52 @@ PROGRAM autoCorrelation
         END SUBROUTINE bruteforce
 
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    
+        SUBROUTINE fourierspace(r,acf)
+            IMPLICIT NONE
+            DOUBLE PRECISION, DIMENSION(:,:,:), INTENT(IN) :: r
+            DOUBLE PRECISION, DIMENSION(0:), INTENT(OUT) :: acf
+            INTEGER( KIND=KIND(1) ), PARAMETER :: i2b = KIND(1) !> simple precision integer 
+            INTEGER(i2b), PARAMETER :: dp = KIND(0.0d0) !> double precision real
+            INTEGER(i2b), PARAMETER :: sp = KIND(0.0) !> simple precision real
+            INTEGER(i2b), PARAMETER :: i4b = 2_i2b * i2b !> double precision integer
+            TYPE :: fftw3Needs
+                INTEGER(i4b) :: plan_forward, plan_backward ! descriptors of our FFTs
+                REAL(dp), ALLOCATABLE, DIMENSION (:) :: in_forward, out_backward ! input of FFT and output (result) of inverse FFT
+                COMPLEX(dp), ALLOCATABLE, DIMENSION (:) :: out_forward, in_backward ! output (result) of FFT and input of inverse FFT        
+            END TYPE
+            TYPE( fftw3Needs ) :: fftw3
+!~             REAL(dp), PARAMETER :: twopi = 2._dp*ACOS(-1._dp)
+            INTEGER :: s,nt
+            INCLUDE "/usr/include/fftw3.f" ! SHOULD BE REMOVED VERY FAST BUT NEEDS A MAKEFILE OR ./CONFIG TO INCLUDE THE CORRECT TREE IN MAC, UBUNTU, FEDORA, etc.
+
+            PRINT*,"I'll use the fourier space algorithm to compute the autocrosscorrelation"
+            CALL CPU_TIME(time0)        
+            s=SIZE(r,2)*2
+            ALLOCATE(fftw3%in_forward(s), SOURCE=0.d0)
+            ALLOCATE(fftw3%out_forward(s/2+1))
+            ALLOCATE(fftw3%out_backward(s))
+            ALLOCATE(fftw3%in_backward(s/2+1))
+
+            CALL dfftw_plan_dft_r2c_1d ( fftw3%plan_forward,  s, fftw3%in_forward,  fftw3%out_forward, FFTW_MEASURE )
+            CALL dfftw_plan_dft_c2r_1d ( fftw3%plan_backward, s, fftw3%in_backward, fftw3%out_backward, FFTW_MEASURE )
+
+            acf=0.d0
+            DO i=1,3 ! x,y,z
+                DO s=1,Nat ! atoms
+                    fftw3%in_forward(LBOUND(r,2):UBOUND(r,2)) =r(s,:,i)
+                    CALL dfftw_execute ( fftw3%plan_forward )
+                    fftw3%in_backward = fftw3%out_forward* CONJG(fftw3%out_forward) ! I AM SURE AN INTRINSIC FUNCTION EXISTS FOR x=z.z*
+                    CALL dfftw_execute ( fftw3%plan_backward )
+                    acf =acf +fftw3%out_backward(LBOUND(r,2):UBOUND(r,2))
+                END DO
+            END DO
+            nt=SIZE(r,2)
+            acf =acf/(DBLE(Nat*SIZE(fftw3%in_forward,1)))
+            DO s=1,nt
+                acf(s-1)=acf(s-1)/DBLE(nt-(s-1))
+            END DO
+        
+        END SUBROUTINE fourierspace
 
 END PROGRAM autoCorrelation
