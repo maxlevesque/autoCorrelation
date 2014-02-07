@@ -401,29 +401,10 @@ How to use our Fortran code
 \end_layout
 
 \begin_layout Standard
-The code should be run by 
+The code should be run by
 \end_layout
 
 \begin_layout Standard
-\begin_inset Box Boxed
-position "t"
-hor_pos "c"
-has_inner_box 1
-inner_pos "t"
-use_parbox 0
-use_makebox 0
-width "100col%"
-special "none"
-height "1in"
-height_special "totalheight"
-status open
-
-\begin_layout Plain Layout
-autoCorrelation N i filename
-\end_layout
-
-\end_inset
-
 where 
 \begin_inset Formula $N$
 \end_inset
