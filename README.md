@@ -2,24 +2,27 @@
 
 ## Purpose
 
-Computes the autocorrelation function of particles along a trajectory.
+Computes the autocorrelation function of a three-dimensional array signal for multiple particles.
 
 ## Background
 
-PLEASE REFERE TO MANUAL.LYX AND MANUAL.PDF
+Please refer to manual.pdf for detailed instructions and a discussion of the mathematical background.
 
-## Main author
+## Author
 
-Written by Maximilien Levesque, while in postdoc in the group of Mathieu Salanne at  
-UPMC Univ Paris 06, CNRS, ESPCI, UMR 7195, PECSA, F-75005 Paris, France
+Written by Maximilien Levesque, École Normale Supérieure, Paris, France.
 
-Written for a better workflow in the MEM group.
+## Important contributors
 
-## Thanks
+* Vincent Dahirel, UPMC, PECSA, Paris, France, for rewritting the brute force algorithm in a faster and more readable way, Oct. 2013.
+* Marie Jardat, UPMC, PECSA, Paris, France, for discussions, extensive testing and bug reports. Sept. 2013.
+* Xudong Zhao, UPMC, PECSA, Paris, France, for providing test cases, for discussions and Apple specific bug reports. Sept. 2013
 
-* Marie Jardat, UPMC, PECSA, Paris, France, for discussions, extensive testing and bug reports of the beta (unshared) versions. Sept. 2013.
-* Xudong Zhao, UPMC, PECSA, Paris, France, for providing test cases and for discussions. Sept. 2013
-* Vincent Dahirel, UPMC, PECSA, Paris, France, for rewritting part of the main brute force algorithm in a more fast and readable way, Oct. 2013.
+## Changelog
+
+* Sept. 2013:   Basic version of the code, with bruteforce algorithm only.
+* Oct. 2013:    Various improvements of the code and of the bruteforce algorithm.
+* Feb. 2014:    Introduction of the Fourier space algorithm, inducing runtimes divided by 100.
 
 ## How to make it work
 
@@ -36,6 +39,8 @@ You may also go to https://github.com/maxlevesque/autoCorrelation/archive/master
 Or use `get`, `wget`, ... or whatever seems good to you. I repeat: the best and easiest way to download and stay up-to-date is to use `git`.
 
 ### Compile it
+
+The Fourier space algorithm requires the `FFTW3` library. Please visite their [website](www.fftw.org) for more informations.
 
 You need to install `scons`, which is a newer and better and easier equivalent to the much complicated `make`.
 Please visit [the scons website](www.scons.org) for download, or you should better use the repositories of your own distribution:  
