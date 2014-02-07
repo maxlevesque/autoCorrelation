@@ -93,7 +93,7 @@ Note that if you have one-dimensional (two-dimensional) vector at each time step
 The executable is waiting for arguments:  
 1. `Nat`, defined above  
 2. `a`, an integer with value `1` or `2`, for bruteforce or fourierspace algorithm.
-2. `filename` of the trajectory in the format discussed above.  
+3. `filename` of the trajectory in the format discussed above.  
   
 So, you have to execute:  
 `$ autoCorrelation 800 2 ./analysis/velocities.out`
