@@ -400,20 +400,37 @@ reference "eq:def"
 How to use our Fortran code
 \end_layout
 
-\begin_layout Standard
-The code should be run by
+\begin_layout Subsection
+Input file
 \end_layout
 
 \begin_layout Standard
+Input files must look like the following,
+\begin_inset Formula 
+\begin{eqnarray*}
+f_{x}^{\left(i\right)}\left[t\right] & f_{y}^{\left(i\right)}\left[t\right] & f_{z}^{\left(i\right)}\left[t\right]\\
+f_{x}^{\left(i+1\right)}\left[t\right] & f_{y}^{\left(i+1\right)}\left[t\right] & f_{z}^{\left(i+1\right)}\left[t\right]\\
+ & \cdots\\
+f_{x}^{\left(\ldots\right)}\left[t\right] & f_{y}^{\left(\ldots\right)}\left[t\right] & f_{z}^{\left(\ldots\right)}\left[t\right]\\
+f_{x}^{\left(N\right)}\left[t\right] & f_{y}^{\left(N\right)}\left[t\right] & f_{z}^{\left(N\right)}\left[t\right]\\
+f_{x}^{\left(1\right)}\left[t+1\right] & f_{y}^{\left(1\right)}\left[t+1\right] & f_{z}^{\left(1\right)}\left[t+1\right]\\
+f_{x}^{\left(2\right)}\left[t+1\right] & f_{y}^{\left(2\right)}\left[t+1\right] & f_{z}^{\left(2\right)}\left[t+1\right]\\
+\cdots & \cdots & \cdots
+\end{eqnarray*}
+
+\end_inset
+
 where 
 \begin_inset Formula $N$
 \end_inset
 
- is the number of atoms in the supercell, 
-\begin_inset Formula $i$
+ is the number of atoms in the supercell, and 
+\begin_inset Formula $t$
 \end_inset
 
- must be 1 or 2
+ is the discrete index of timesteps.
+ For a given timestep, each atom is considered.
+ The timestep is then incremented.
 \end_layout
 
 \begin_layout Bibliography
