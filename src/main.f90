@@ -26,12 +26,12 @@ PROGRAM autoCorrelation
     PRINT*,'Please be patient... Everything looks fine...'
 
     ! read vector of all sites i at all timesteps t
-    ALLOCATE( r(Nat,nbTimeStepsInTraj,x:z), SOURCE=0.d0 )
+    ALLOCATE( r(nbTimeStepsInTraj,x:z,Nat), SOURCE=0.d0 )
     CALL opentraj
     DO t=1,nbTimeStepsInTraj
         IF( mod(t,1000)==1 .AND. t/=1) PRINT*,"I've read ",t-1," timesteps among ",nbTimeStepsInTraj
         DO i=1,Nat
-            READ(10,*) r(i,t,x), r(i,t,y), r(i,t,z)
+            READ(10,*) r(t,x,i), r(t,y,i), r(t,z,i)
         END DO
     END DO
     CALL closetraj
@@ -185,16 +185,16 @@ PROGRAM autoCorrelation
             IMPLICIT NONE
             DOUBLE PRECISION, DIMENSION(:,:,:), INTENT(IN) :: r
             DOUBLE PRECISION, DIMENSION(0:), INTENT(OUT) :: acf
-            DOUBLE PRECISION, DIMENSION(SIZE(r,2),SIZE(r,3)) :: ri ! position of site i at timestep t
+            DOUBLE PRECISION, DIMENSION(SIZE(r,1),SIZE(r,2)) :: ri ! position of site i at timestep t for a given atom
             INTEGER :: i,dt,nt,Nat,nbTimeStepsInTraj
             INTEGER, PARAMETER :: x=1, y=2, z=3
             DOUBLE PRECISION :: time0, time1, remainingTimeInSec
             PRINT*,"I'll use the brute force algorithm to compute the autocrosscorrelation"
             CALL CPU_TIME(time0)
-            Nat = SIZE(r,1)   !r(Nat,nbTimeStepsInTraj,x:z)
-            nbTimeStepsInTraj = SIZE(r,2)
+            Nat = SIZE(r,3)   !r(Nat,nbTimeStepsInTraj,x:z)
+            nbTimeStepsInTraj = SIZE(r,1)
             DO i= 1, Nat
-                ri = r(i,:,:)
+                ri = r(:,:,i)
                 DO dt = 0, nbTimeStepsInTraj-1
                     nt = nbTimeStepsInTraj-dt
                     acf(dt)= acf(dt)+&
@@ -238,7 +238,7 @@ PROGRAM autoCorrelation
 
             PRINT*,"I'll use the fourier space algorithm to compute the autocrosscorrelation"
             CALL CPU_TIME(time0)        
-            s=SIZE(r,2)*2
+            s=SIZE(r,1)*2
             ALLOCATE(fftw3%in_forward(s), SOURCE=0.d0)
             ALLOCATE(fftw3%out_forward(s/2+1))
             ALLOCATE(fftw3%out_backward(s))
@@ -248,16 +248,16 @@ PROGRAM autoCorrelation
             CALL dfftw_plan_dft_c2r_1d ( fftw3%plan_backward, s, fftw3%in_backward, fftw3%out_backward, FFTW_MEASURE )
 
             acf=0.d0
-            DO i=1,3 ! x,y,z
-                DO s=1,Nat ! atoms
-                    fftw3%in_forward(LBOUND(r,2):UBOUND(r,2)) =r(s,:,i)
+            DO s=1,Nat ! atoms
+                DO i=1,3 ! x,y,z
+                    fftw3%in_forward(LBOUND(r,1):UBOUND(r,1)) =r(:,i,s)
                     CALL dfftw_execute ( fftw3%plan_forward )
                     fftw3%in_backward = fftw3%out_forward* CONJG(fftw3%out_forward) ! I AM SURE AN INTRINSIC FUNCTION EXISTS FOR x=z.z*
                     CALL dfftw_execute ( fftw3%plan_backward )
-                    acf =acf +fftw3%out_backward(LBOUND(r,2):UBOUND(r,2))
+                    acf =acf +fftw3%out_backward(LBOUND(r,1):UBOUND(r,1))
                 END DO
             END DO
-            nt=SIZE(r,2)
+            nt=SIZE(r,1)
             acf =acf/(DBLE(Nat*SIZE(fftw3%in_forward,1)))
             DO s=1,nt
                 acf(s-1)=acf(s-1)/DBLE(nt-(s-1))
