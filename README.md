@@ -6,14 +6,7 @@ Computes the autocorrelation function of particles along a trajectory.
 
 ## Background
 
-The purpose of this program is to compute the autocorrelation function (initially the velocity autocorrelation function, VACF) of a series of equivalent particles that have a three dimensional vector
-evolving in time.
-
-The ACF we calculate is defined as
-ACF(dt)= Average of (v(i,t).v(i,t+dt)) over all i and t,
-
-where particle i has velocity v (or force, or any vector you want) at time t. The ensemble average goes for all equivalent sites and origin of times.
-The dot indicates dot (scalar) product.
+PLEASE REFERE TO MANUAL.LYX AND MANUAL.PDF
 
 ## Main author
 
@@ -26,7 +19,7 @@ Written for a better workflow in the MEM group.
 
 * Marie Jardat, UPMC, PECSA, Paris, France, for discussions, extensive testing and bug reports of the beta (unshared) versions. Sept. 2013.
 * Xudong Zhao, UPMC, PECSA, Paris, France, for providing test cases and for discussions. Sept. 2013
-* Vincent Dahirel, UPMC, PECSA, Paris, France, for rewritting part of the main algorithm in a more fast and readable way, Oct. 2013.
+* Vincent Dahirel, UPMC, PECSA, Paris, France, for rewritting part of the main brute force algorithm in a more fast and readable way, Oct. 2013.
 
 ## How to make it work
 
@@ -94,10 +87,11 @@ Note that if you have one-dimensional (two-dimensional) vector at each time step
 
 The executable is waiting for arguments:  
 1. `Nat`, defined above  
+2. `a`, an integer with value `1` or `2`, for bruteforce or fourierspace algorithm.
 2. `filename` of the trajectory in the format discussed above.  
   
 So, you have to execute:  
-`$ autoCorrelation 800 ./analysis/velocities.out`
+`$ autoCorrelation 800 2 ./analysis/velocities.out`
 
 ## Outputs
 
