@@ -1,14 +1,9 @@
-! This program computes the autocorrelation of a list of sites during a trajectory in time.
-! It is written by Maximilien Levesque while in postdoc in the group of Mathieu Salanne
-! at UPMC Univ Paris 06, CNRS, ESPCI, UMR 7195, PECSA, F-75005 Paris, France.
-
 PROGRAM autoCorrelation
 
     IMPLICIT NONE
     
     CHARACTER(LEN("acf.out")) :: outputFile = "acf.out"
-    INTEGER :: Nat,i,nbTimeStepsInTraj,iostat,dt,t
-    INTEGER, PARAMETER :: x=1, y=2, z=3
+    INTEGER :: Nat,i,nbTimeStepsInTraj,iostat,dt,t,dmax,d
     DOUBLE PRECISION, DIMENSION(:,:,:), ALLOCATABLE :: r ! position of site i at timestep t
     DOUBLE PRECISION :: time1, time0
     DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: acf
@@ -17,21 +12,20 @@ PROGRAM autoCorrelation
     CALL CPU_TIME(time0)
 
     ! read all arguments that MUST be given at execution
-    CALL readArguments(Nat,trajectoryFileName,algo)
+    CALL readArguments(Nat,trajectoryFileName,algo,dmax)
     i =NbOfLinesInTraj()     ! deduce the number of timesteps in the trajectory from the number of lines in the trajectory file
     CALL testConsistencyOfAtomNumber(i,Nat)
     nbTimeStepsInTraj = i/Nat
-
     PRINT*,'I found',nbTimeStepsInTraj,' timesteps in your trajectory called ',trim(adjustl(trajectoryFileName))
     PRINT*,'Please be patient... Everything looks fine...'
 
     ! read vector of all sites i at all timesteps t
-    ALLOCATE( r(nbTimeStepsInTraj,x:z,Nat), SOURCE=0.d0 )
+    ALLOCATE( r(nbTimeStepsInTraj,dmax,Nat), SOURCE=0.d0 )
     CALL opentraj
     DO t=1,nbTimeStepsInTraj
         IF( mod(t,1000)==1 .AND. t/=1) PRINT*,"I've read ",t-1," timesteps among ",nbTimeStepsInTraj
         DO i=1,Nat
-            READ(10,*) r(t,x,i), r(t,y,i), r(t,z,i)
+            READ(10,*) r(t,1:dmax,i)
         END DO
     END DO
     CALL closetraj
@@ -125,25 +119,9 @@ PROGRAM autoCorrelation
     
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!    
         
-    !~     function NbOfLinesInTraj(filename)
-    !~         character(len=*), intent(in) :: filename
-    !~         integer :: NbOfLinesInTraj
-    !~         character(len=180) :: cmd, msg
-    !~         character(len=*), parameter :: tmpfilename = "000098767612398712309.TMP"
-    !~         cmd="cat "//trim(adjustl(filename))//" | wc -l > "//tmpfilename
-    !~         call execute_command_line(trim(adjustl(cmd)), wait=.true.)
-    !~         call inquireFileExistence(tmpfilename)
-    !~         open(86,file=tmpfilename)
-    !~         read(86,*)NbOfLinesInTraj
-    !~         close(86)
-    !~         call execute_command_line("rm "//tmpfilename)
-    !~     end function
-    
-    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        
-        SUBROUTINE readArguments(Nat,trajectoryFileName,algo)
+        SUBROUTINE readArguments(Nat,trajectoryFileName,algo,nColumns)
             IMPLICIT NONE
-            INTEGER, INTENT(OUT) :: Nat
+            INTEGER, INTENT(OUT) :: Nat,nColumns
             CHARACTER(LEN=*),INTENT(OUT) :: trajectoryFileName,algo
             CALL GET_COMMAND_ARGUMENT(1,arg,STATUS=i)
                 IF (i<0) THEN
@@ -173,6 +151,14 @@ PROGRAM autoCorrelation
                 IF (i<0) THEN
                     STOP "STOP. The length of the argument is too big for me :( "
                 ELSE IF (i>0) THEN
+                    STOP "Argument retrieval failed. You should execute the program with the number of atoms as 1st argument"
+                END IF
+                READ(arg,*) nColumns
+                PRINT*,"Number of columns in file: ",nColumns
+            CALL GET_COMMAND_ARGUMENT(4,arg,STATUS=i)
+                IF (i<0) THEN
+                    STOP "STOP. The length of the argument is too big for me :( "
+                ELSE IF (i>0) THEN
                     STOP "Argument retrieval failed. You should execute the program with the algorithm as 3nd argument"
                 END IF
                 trajectoryFileName = TRIM(ADJUSTL(arg))
@@ -183,26 +169,25 @@ PROGRAM autoCorrelation
     
         SUBROUTINE bruteforce(r,acf)
             IMPLICIT NONE
-            DOUBLE PRECISION, DIMENSION(:,:,:), INTENT(IN) :: r
-            DOUBLE PRECISION, DIMENSION(0:), INTENT(OUT) :: acf
+            DOUBLE PRECISION, DIMENSION(:,:,:), CONTIGUOUS, INTENT(IN) :: r
+            DOUBLE PRECISION, DIMENSION(0:), CONTIGUOUS, INTENT(OUT) :: acf
             DOUBLE PRECISION, DIMENSION(SIZE(r,1),SIZE(r,2)) :: ri ! position of site i at timestep t for a given atom
-            INTEGER :: i,dt,nt,Nat,nbTimeStepsInTraj
-            INTEGER, PARAMETER :: x=1, y=2, z=3
+            INTEGER :: i,dt,nt,Nat,nbTimeStepsInTraj,d,dmax
             DOUBLE PRECISION :: time0, time1, remainingTimeInSec
             PRINT*,"I'll use the brute force algorithm to compute the autocrosscorrelation"
             CALL CPU_TIME(time0)
-            Nat = SIZE(r,3)   !r(Nat,nbTimeStepsInTraj,x:z)
             nbTimeStepsInTraj = SIZE(r,1)
+            dmax = SIZE(r,2)
+            Nat = SIZE(r,3)   !r(nbTimeStepsInTraj,x:z,Nat)
             DO i= 1, Nat
                 ri = r(:,:,i)
-                DO dt = 0, nbTimeStepsInTraj-1
-                    nt = nbTimeStepsInTraj-dt
-                    acf(dt)= acf(dt)+&
-                                (SUM(    ri(1:nt,x)*ri(1+dt:nt+dt,x)  &
-                                        +ri(1:nt,y)*ri(1+dt:nt+dt,y)  &
-                                        +ri(1:nt,z)*ri(1+dt:nt+dt,z))  )/DBLE(nt)
+                DO d=1,dmax
+                    DO dt = 0, nbTimeStepsInTraj-1
+                        nt = nbTimeStepsInTraj-dt
+                            acf(dt) =acf(dt)+SUM( ri(1:nt,d)*ri(1+dt:nt+dt,d) )/DBLE(nt)
+                    END DO
                 END DO
-    
+
                 CALL CPU_TIME(time1)
                 IF(MODULO(i,MAX(INT(Nat*0.1),1))==0) THEN
                     remainingTimeInSec = DBLE(Nat-i)*(time1-time0)/DBLE(i)
@@ -220,36 +205,40 @@ PROGRAM autoCorrelation
     
         SUBROUTINE fourierspace(r,acf)
             IMPLICIT NONE
-            DOUBLE PRECISION, DIMENSION(:,:,:), INTENT(IN) :: r
-            DOUBLE PRECISION, DIMENSION(0:), INTENT(OUT) :: acf
-            INTEGER( KIND=KIND(1) ), PARAMETER :: i2b = KIND(1) !> simple precision integer 
+            DOUBLE PRECISION, DIMENSION(:,:,:), CONTIGUOUS, INTENT(IN) :: r
+            DOUBLE PRECISION, DIMENSION(0:), CONTIGUOUS, INTENT(OUT) :: acf
+            INTEGER(KIND=KIND(1)), PARAMETER :: i2b = KIND(1) !> simple precision integer 
             INTEGER(i2b), PARAMETER :: dp = KIND(0.0d0) !> double precision real
             INTEGER(i2b), PARAMETER :: sp = KIND(0.0) !> simple precision real
             INTEGER(i2b), PARAMETER :: i4b = 2_i2b * i2b !> double precision integer
             TYPE :: fftw3Needs
                 INTEGER(i4b) :: plan_forward, plan_backward ! descriptors of our FFTs
-                REAL(dp), ALLOCATABLE, DIMENSION (:) :: in_forward, out_backward ! input of FFT and output (result) of inverse FFT
-                COMPLEX(dp), ALLOCATABLE, DIMENSION (:) :: out_forward, in_backward ! output (result) of FFT and input of inverse FFT        
+                REAL(dp),    ALLOCATABLE, DIMENSION(:) :: in_forward, out_backward ! input of FFT and output (result) of inverse FFT
+                COMPLEX(dp), ALLOCATABLE, DIMENSION(:) :: out_forward, in_backward ! output (result) of FFT and input of inverse FFT        
             END TYPE
             TYPE( fftw3Needs ) :: fftw3
-!~             REAL(dp), PARAMETER :: twopi = 2._dp*ACOS(-1._dp)
             INTEGER :: s,nt
             INCLUDE "/usr/include/fftw3.f" ! SHOULD BE REMOVED VERY FAST BUT NEEDS A MAKEFILE OR ./CONFIG TO INCLUDE THE CORRECT TREE IN MAC, UBUNTU, FEDORA, etc.
 
             PRINT*,"I'll use the fourier space algorithm to compute the autocrosscorrelation"
             CALL CPU_TIME(time0)        
-            s=SIZE(r,1)*2
+            
+            dmax = SIZE(r,2)
+            nt = SIZE(r,1)
+            s = nt*2
+            Nat = SIZE(r,3)
+            
             ALLOCATE(fftw3%in_forward(s), SOURCE=0.d0)
-            ALLOCATE(fftw3%out_forward(s/2+1))
+            ALLOCATE(fftw3%out_forward(s/2+1)) ! when from real to complex then half the signal is enough
             ALLOCATE(fftw3%out_backward(s))
             ALLOCATE(fftw3%in_backward(s/2+1))
 
-            CALL dfftw_plan_dft_r2c_1d ( fftw3%plan_forward,  s, fftw3%in_forward,  fftw3%out_forward, FFTW_MEASURE )
-            CALL dfftw_plan_dft_c2r_1d ( fftw3%plan_backward, s, fftw3%in_backward, fftw3%out_backward, FFTW_MEASURE )
+            CALL dfftw_plan_dft_r2c_1d ( fftw3%plan_forward,  s, fftw3%in_forward,  fftw3%out_forward,  FFTW_ESTIMATE)!FFTW_MEASURE )
+            CALL dfftw_plan_dft_c2r_1d ( fftw3%plan_backward, s, fftw3%in_backward, fftw3%out_backward, FFTW_ESTIMATE)!FFTW_MEASURE )
 
             acf=0.d0
             DO s=1,Nat ! atoms
-                DO i=1,3 ! x,y,z
+                DO i=1,dmax ! x,y,z ...
                     fftw3%in_forward(LBOUND(r,1):UBOUND(r,1)) =r(:,i,s)
                     CALL dfftw_execute ( fftw3%plan_forward )
                     fftw3%in_backward = fftw3%out_forward* CONJG(fftw3%out_forward) ! I AM SURE AN INTRINSIC FUNCTION EXISTS FOR x=z.z*
@@ -257,12 +246,13 @@ PROGRAM autoCorrelation
                     acf =acf +fftw3%out_backward(LBOUND(r,1):UBOUND(r,1))
                 END DO
             END DO
-            nt=SIZE(r,1)
+            
             acf =acf/(DBLE(Nat*SIZE(fftw3%in_forward,1)))
             DO s=1,nt
                 acf(s-1)=acf(s-1)/DBLE(nt-(s-1))
             END DO
         
         END SUBROUTINE fourierspace
+
 
 END PROGRAM autoCorrelation

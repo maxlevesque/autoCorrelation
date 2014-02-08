@@ -405,7 +405,7 @@ Input file
 \end_layout
 
 \begin_layout Standard
-Input files must look like the following,
+Input files must look like the following, e.g., in dimension 3:
 \begin_inset Formula 
 \begin{eqnarray*}
 f_{x}^{\left(i\right)}\left[t\right] & f_{y}^{\left(i\right)}\left[t\right] & f_{z}^{\left(i\right)}\left[t\right]\\
