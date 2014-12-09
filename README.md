@@ -4,13 +4,13 @@
 
 Computes the autocorrelation function of a *d*-dimensional array signal for multiple particles.
 
-## Background
+## Background and theory
 
 Please refer to manual.pdf for detailed instructions and a discussion of the mathematical background.
 
 ## Author
 
-Written by Maximilien Levesque, École Normale Supérieure, Paris, France.
+Written by [Maximilien Levesque](http://www.chimie.ens.fr/?q=pasteur/pct/Maximilien_Levesque/bio), École Normale Supérieure, Paris, France.
 
 ## Important contributors
 
@@ -42,19 +42,9 @@ Or use `get`, `wget`, ... or whatever seems good to you. I repeat: the best and 
 
 The Fourier space algorithm requires the `FFTW3` library. Please visite their [website](www.fftw.org) for more informations.
 
-You need to install `scons`, which is a newer and better and easier equivalent to the much complicated `make`.
-Please visit [the scons website](www.scons.org) for download, or you should better use the repositories of your own distribution:  
-Under Ubuntu: `sudo apt-get install scons`  
-Under Fedora: `sudo yum install scons`  
-and so on for other distros.
-
-Once you're in the directory where you downloaded `autoCorrelation`, just type  
+```bash
+$ gfortran src/main.f90 -lfftw3 -oautocorrelation
 ```
-$ scons
-```  
-In a nutshell, scons will look at the file called `SConstruct` I built for you and compile everything smartly.
-
-Of course, you may compile the simple fortran file(s) by yourself if you prefer the complicated ways.
 
 ## How to use `autoCorrelation`
 
