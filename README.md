@@ -10,7 +10,7 @@ Please refer to manual.pdf for detailed instructions and a discussion of the mat
 
 ## Author
 
-Written by [Maximilien Levesque](http://www.chimie.ens.fr/?q=pasteur/pct/Maximilien_Levesque/bio), École Normale Supérieure, Paris, France.
+Written by [Maximilien Levesque](http://www.chimie.ens.fr/?q=pasteur/pct/Maximilien_Levesque/bio), [École Normale Supérieure](http://www.ens.fr), Paris, France.
 
 ## Important contributors
 
