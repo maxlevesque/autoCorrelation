@@ -2,3 +2,5 @@
 *.o
 .sconsign.dblite
 autoCorrelation
+a.out
+autocorrelation
