@@ -1,14 +1,14 @@
 PROGRAM autoCorrelation
 
     IMPLICIT NONE
-    
+
     CHARACTER(LEN("acf.out")) :: outputFile = "acf.out"
     INTEGER :: Nat,i,nbTimeStepsInTraj,iostat,dt,t,dmax,d
     DOUBLE PRECISION, DIMENSION(:,:,:), ALLOCATABLE :: r ! position of site i at timestep t
     DOUBLE PRECISION :: time1, time0
     DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: acf
     CHARACTER(LEN=300) :: arg,trajectoryFileName,algo
-  
+
     CALL CPU_TIME(time0)
 
     ! read all arguments that MUST be given at execution
@@ -23,13 +23,14 @@ PROGRAM autoCorrelation
     ALLOCATE( r(nbTimeStepsInTraj,dmax,Nat), SOURCE=0.d0 )
     CALL opentraj
     DO t=1,nbTimeStepsInTraj
-        IF( mod(t,1000)==1 .AND. t/=1) PRINT*,"I've read ",t-1," timesteps among ",nbTimeStepsInTraj
+        IF( mod(t,1000)==1 .AND. t/=1) PRINT*,"For your information, I've read ",t-1," timesteps.",nbTimeStepsInTraj-(t-1)&
+          ,"more to come"
         DO i=1,Nat
             READ(10,*) r(t,1:dmax,i)
         END DO
     END DO
     CALL closetraj
-    PRINT*,"I've read all the trajectories :). Be patient..."
+    PRINT*,"All trajectories are read. Now, be patient..."
 
     ! compute autocorrelation function acf(dt)= <v_i(t).v_i(t+dt)>_{i,t}   where . is the scalar product
     ALLOCATE( acf(0:nbTimeStepsInTraj-1), SOURCE=0.d0 )
@@ -55,56 +56,57 @@ PROGRAM autoCorrelation
     ELSE
         PRINT*,"-- Finished in ",NINT(time1-time0)," s. GGHF ;) --"
     END IF
-    
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     CONTAINS
-    
-    
+
+
         SUBROUTINE testConsistencyOfAtomNumber(i,Nat)
             INTEGER, INTENT(IN) :: i,Nat
             IF( MODULO(i,Nat)/=0 ) THEN
-                PRINT*,"There is an inconsistency between the number of lines in file ",TRIM(ADJUSTL(trajectoryFileName))
-                PRINT*,"and the number of atoms, ",Nat
-                PRINT*,"since modulo(nlines,Nat)/=0"
-                STOP "I stop -- :("
+                PRINT*,"ERROR: Inconsistency between the number of lines in file ",TRIM(ADJUSTL(trajectoryFileName))
+                PRINT*,"=====  and the number of atoms given as argument:",Nat
+                PRINT*,"       Modulo(nlines,Nat)/=0"
+                STOP
             END IF
         END SUBROUTINE testConsistencyOfAtomNumber
-    
+
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    
+
         SUBROUTINE opentraj
             CALL inquireFileExistence(trajectoryFileName)
             ! read positions
             OPEN(10, FILE=trajectoryFileName,STATUS='old',IOSTAT=iostat)
             IF (iostat /= 0) THEN
-                WRITE(*,*) 'File open failed for',trajectoryFileName
-                WRITE(*,*) 'Error code is ', iostat
+                WRITE(*,*) 'ERROR: l.82 File open failed for',trajectoryFileName
+                WRITE(*,*) '=====  Error code is ', iostat
                 STOP
             END IF
         END SUBROUTINE opentraj
-    
-    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!    
-        
+
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
         SUBROUTINE closetraj
             CLOSE(10)
         END SUBROUTINE closetraj
-    
+
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    
+
         SUBROUTINE inquireFileExistence(fileName)
             CHARACTER(LEN=*), INTENT(IN) :: fileName
             INTEGER, PARAMETER :: stderr = 0
             LOGICAL :: exist
             INQUIRE(FILE=fileName, EXIST=exist)
             IF( .NOT. exist) THEN
-                WRITE(stderr,*) "YOUR ERROR (not mine ;): The file ",fileName," does not exist. It should."
+                WRITE(stderr,*) "ERROR: File ",fileName," does not exist."
+                write(stderr,*) "====="
                 STOP
             END IF
         END SUBROUTINE inquireFileExistence
-    
+
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    
+
         FUNCTION NbOfLinesInTraj()
             INTEGER :: NbOfLinesInTraj
             CALL opentraj
@@ -116,9 +118,9 @@ PROGRAM autoCorrelation
             END DO
             CALL closetraj
         END FUNCTION NbOfLinesInTraj
-    
-    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!    
-        
+
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
         SUBROUTINE readArguments(Nat,trajectoryFileName,algo,nColumns)
             IMPLICIT NONE
             INTEGER, INTENT(OUT) :: Nat,nColumns
@@ -144,7 +146,7 @@ PROGRAM autoCorrelation
                 CASE (2)
                     algo="fourierspace"
                 CASE DEFAULT
-                    STOP "I did not understand the argument for the algo. Should be 1 (bruteforce) or 2 (fourierspace)"
+                    STOP "Argument for the algo must be 1 (bruteforce) or 2 (fourierspace)"
                 END SELECT
                 PRINT*,"I'll use algorithm ",TRIM(ADJUSTL(algo))
             CALL GET_COMMAND_ARGUMENT(3,arg,STATUS=i)
@@ -164,9 +166,9 @@ PROGRAM autoCorrelation
                 trajectoryFileName = TRIM(ADJUSTL(arg))
                 PRINT*,"I'll read the trajectory from ",TRIM(ADJUSTL(trajectoryFileName))
         END SUBROUTINE readArguments
-    
+
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    
+
         SUBROUTINE bruteforce(r,acf)
             IMPLICIT NONE
             DOUBLE PRECISION, DIMENSION(:,:,:), CONTIGUOUS, INTENT(IN) :: r
@@ -174,7 +176,7 @@ PROGRAM autoCorrelation
             DOUBLE PRECISION, DIMENSION(SIZE(r,1),SIZE(r,2)) :: ri ! position of site i at timestep t for a given atom
             INTEGER :: i,dt,nt,Nat,nbTimeStepsInTraj,d,dmax
             DOUBLE PRECISION :: time0, time1, remainingTimeInSec
-            PRINT*,"I'll use the brute force algorithm to compute the autocrosscorrelation"
+            PRINT*,"I'll use the brute force algorithm"
             CALL CPU_TIME(time0)
             nbTimeStepsInTraj = SIZE(r,1)
             dmax = SIZE(r,2)
@@ -202,32 +204,32 @@ PROGRAM autoCorrelation
         END SUBROUTINE bruteforce
 
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    
+
         SUBROUTINE fourierspace(r,acf)
             IMPLICIT NONE
             DOUBLE PRECISION, DIMENSION(:,:,:), CONTIGUOUS, INTENT(IN) :: r
             DOUBLE PRECISION, DIMENSION(0:), CONTIGUOUS, INTENT(OUT) :: acf
-            INTEGER(KIND=KIND(1)), PARAMETER :: i2b = KIND(1) !> simple precision integer 
+            INTEGER(KIND=KIND(1)), PARAMETER :: i2b = KIND(1) !> simple precision integer
             INTEGER(i2b), PARAMETER :: dp = KIND(0.0d0) !> double precision real
             INTEGER(i2b), PARAMETER :: sp = KIND(0.0) !> simple precision real
             INTEGER(i2b), PARAMETER :: i4b = 2_i2b * i2b !> double precision integer
             TYPE :: fftw3Needs
                 INTEGER(i4b) :: plan_forward, plan_backward ! descriptors of our FFTs
                 REAL(dp),    ALLOCATABLE, DIMENSION(:) :: in_forward, out_backward ! input of FFT and output (result) of inverse FFT
-                COMPLEX(dp), ALLOCATABLE, DIMENSION(:) :: out_forward, in_backward ! output (result) of FFT and input of inverse FFT        
+                COMPLEX(dp), ALLOCATABLE, DIMENSION(:) :: out_forward, in_backward ! output (result) of FFT and input of inverse FFT
             END TYPE
             TYPE( fftw3Needs ) :: fftw3
             INTEGER :: s,nt
             INCLUDE "/usr/include/fftw3.f" ! SHOULD BE REMOVED VERY FAST BUT NEEDS A MAKEFILE OR ./CONFIG TO INCLUDE THE CORRECT TREE IN MAC, UBUNTU, FEDORA, etc.
 
             PRINT*,"I'll use the fourier space algorithm to compute the autocrosscorrelation"
-            CALL CPU_TIME(time0)        
-            
+            CALL CPU_TIME(time0)
+
             dmax = SIZE(r,2)
             nt = SIZE(r,1)
             s = nt*2
             Nat = SIZE(r,3)
-            
+
             ALLOCATE(fftw3%in_forward(s), SOURCE=0.d0)
             ALLOCATE(fftw3%out_forward(s/2+1)) ! when from real to complex then half the signal is enough
             ALLOCATE(fftw3%out_backward(s))
@@ -246,12 +248,12 @@ PROGRAM autoCorrelation
                     acf =acf +fftw3%out_backward(LBOUND(r,1):UBOUND(r,1))
                 END DO
             END DO
-            
+
             acf =acf/(DBLE(Nat*SIZE(fftw3%in_forward,1)))
             DO s=1,nt
                 acf(s-1)=acf(s-1)/DBLE(nt-(s-1))
             END DO
-        
+
         END SUBROUTINE fourierspace
 
 
