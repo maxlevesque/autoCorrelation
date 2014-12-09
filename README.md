@@ -43,7 +43,7 @@ Or use `get`, `wget`, ... or whatever seems good to you. I repeat: the best and 
 The Fourier space algorithm requires the `FFTW3` library. Please visite their [website](www.fftw.org) for more informations.
 
 ```bash
-$ gfortran src/main.f90 -lfftw3 -oautocorrelation
+$ make
 ```
 
 ## How to use `autoCorrelation`
