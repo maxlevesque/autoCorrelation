@@ -14,9 +14,9 @@ Written by Maximilien Levesque, École Normale Supérieure, Paris, France.
 
 ## Important contributors
 
-* [Vincent Dahirel](http://www.phenix.cnrs.fr/spip.php?rubrique91), UPMC, PECSA, Paris, France, for rewritting the brute force algorithm in a faster and more readable way, Oct. 2013.
-* [Marie Jardat](http://www.phenix.cnrs.fr/spip.php?rubrique44), UPMC, PECSA, Paris, France, for discussions, extensive testing and bug reports. Sept. 2013.
-* Xudong Zhao, UPMC, PECSA, Paris, France, for providing test cases, for discussions and Apple specific bug reports. Sept. 2013
+* [Vincent Dahirel](http://www.phenix.cnrs.fr/spip.php?rubrique91), UPMC, UMR 8234 PHENIX, Paris, France, for rewritting the brute force algorithm in a faster and more readable way, Oct. 2013.
+* [Marie Jardat](http://www.phenix.cnrs.fr/spip.php?rubrique44), UPMC, UMR 8234 PHENIX, Paris, France, for discussions, extensive testing and bug reports. Sept. 2013.
+* Xudong Zhao, UPMC, UMR 8234 PHENIX, Paris, France, for providing test cases, for discussions and Apple specific bug reports. Sept. 2013
 
 ## Changelog
 
