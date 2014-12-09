@@ -14,8 +14,8 @@ Written by Maximilien Levesque, École Normale Supérieure, Paris, France.
 
 ## Important contributors
 
-* Vincent Dahirel, UPMC, PECSA, Paris, France, for rewritting the brute force algorithm in a faster and more readable way, Oct. 2013.
-* Marie Jardat, UPMC, PECSA, Paris, France, for discussions, extensive testing and bug reports. Sept. 2013.
+* [Vincent Dahirel](http://www.phenix.cnrs.fr/spip.php?rubrique91), UPMC, PECSA, Paris, France, for rewritting the brute force algorithm in a faster and more readable way, Oct. 2013.
+* [Marie Jardat](http://www.phenix.cnrs.fr/spip.php?rubrique44), UPMC, PECSA, Paris, France, for discussions, extensive testing and bug reports. Sept. 2013.
 * Xudong Zhao, UPMC, PECSA, Paris, France, for providing test cases, for discussions and Apple specific bug reports. Sept. 2013
 
 ## Changelog
@@ -92,8 +92,8 @@ Note that if you have one-dimensional (two-dimensional) vector at each time step
 
 The executable is waiting for arguments:  
 1. `Nat`, defined above  
-2. `a`, an integer with value `1` or `2`, for bruteforce or fourierspace algorithm.
-3. `d`, an integer that declares how many columns in the file, i.e., if you're computing autocorrelation of a signal (1), a force (3), etc.
+2. `a`, an integer with value `1` or `2`, for bruteforce or fourierspace algorithm.  
+3. `d`, an integer that declares how many columns in the file, i.e., if you're computing autocorrelation of a signal (1), a force (3), etc.  
 3. `filename` of the trajectory in the format discussed above.  
   
 So, you have to execute:  
