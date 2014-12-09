@@ -72,12 +72,6 @@ and `Nstep` is the number of timesteps in your trajectory. The signal has three 
 In other words, you print the coordinates of all sites for a given timestep, then for the next one, etc.  
 You do not print blank lines anywhere. You can add as many spaces you want between the columns.
 
-At the end, you *must* have 3 columns and `Nat x Nstep` rows.
-
-That's all you need.
-
-Note that if you have one-dimensional (two-dimensional) vector at each time step, you'll have to fill the last 2 (1) columns with zero.
-
 ## Execution
 
 The executable is waiting for arguments:  
