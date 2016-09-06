@@ -10,7 +10,7 @@ Please refer to manual.pdf for detailed instructions and a discussion of the mat
 
 ## Author
 
-Written by [Maximilien Levesque](http://www.chimie.ens.fr/?q=pasteur/pct/Maximilien_Levesque/bio), [École Normale Supérieure](http://www.ens.fr), Paris, France.
+Written by [Maximilien Levesque](http://www.chimie.ens.fr/?q=pasteur/pct/Maximilien_Levesque/bio), [École Normale Supérieure](http://www.ens.fr), Paris, France. I'd be glad if you let me know you use this software!
 
 ## Important contributors
 
@@ -108,26 +108,3 @@ I would not share a tool that is not production ready. I am very confident in th
 Please, read carefully this readme file, and test it thoroughly on data for which you already know the results.
 
 Comments, bug reports or even thanks ;) are welcome!
-
-===================================================
-Some equations (just to show how to type equations)
-===================================================
-
-Example ...
-
-.. math::
-
-    H = \sum_i h (i) + \frac{1}{2} \sum_{i \ne j} g (i, j) + V_{NN}; \quad V_{NN} = \frac{1}{2} \sum_{A \ne B} \frac{Z_A Z_B}{R_{AB}}
-
-Here is some inline example: :math:`V_{eN}`.
-And another example:
-
-.. math::
-
-    h_D = \beta mc^2 + c (\alpha \cdot \mathbf{p} ) + V_{eN}
-
-And yet another example:
-
-.. math::
-
-   g^{Coulomb} (1, 2) = \frac{1}{r_{12}}
